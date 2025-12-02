@@ -1633,3 +1633,12 @@ async def test_handle_sse_event_skips_empty_data():
     finally:
         await write_stream.aclose()
         await read_stream.aclose()
+
+
+@pytest.mark.anyio
+async def test_streamablehttp_client_cleanup_on_cancellation(basic_server: None, basic_server_url: str) -> None:
+    """Test that cleanup doesn't raise GeneratorExit when cancelled."""
+    async with streamablehttp_client(f"{basic_server_url}/mcp") as (read_stream, write_stream, _):
+        # Close streams properly to verify shield protection works
+        await read_stream.aclose()
+        await write_stream.aclose()

@@ -514,5 +514,9 @@ async def streamablehttp_client(
                         await transport.terminate_session(client)
                     tg.cancel_scope.cancel()
         finally:
-            await read_stream_writer.aclose()
-            await write_stream.aclose()
+            # Shield cleanup operations from cancellation to prevent GeneratorExit
+            # from being raised in a cancelled task group context.
+            # See: https://github.com/agronholm/anyio/discussions/624
+            with anyio.CancelScope(shield=True):
+                await read_stream_writer.aclose()
+                await write_stream.aclose()

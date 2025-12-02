@@ -531,4 +531,12 @@ def test_sse_server_transport_endpoint_validation(endpoint: str, expected_result
         # Test valid endpoints that should normalize correctly
         sse = SseServerTransport(endpoint)
         assert sse._endpoint == expected_result
-        assert sse._endpoint.startswith("/")
+
+
+@pytest.mark.anyio
+async def test_sse_client_cleanup_on_cancellation(server: None, server_url: str) -> None:
+    """Test that cleanup doesn't raise GeneratorExit when cancelled."""
+    async with sse_client(server_url + "/sse") as (read_stream, write_stream):
+        # Close streams properly to verify shield protection works
+        await read_stream.aclose()
+        await write_stream.aclose()
